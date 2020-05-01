@@ -2,7 +2,7 @@ import java.io.*;
 import java.util.*;
 
 public class Main {
-    private String fileName = "hmm.txt";
+    private String fileName = "hmm1.txt";
     private String[] linksName = {"","","DEMO","VIDEO","TESTIMONIAL","PRICING","BLOG","PAYMENT"};
     private int[][] linksList = new int[40][3];
     private int index = 0;
@@ -10,7 +10,8 @@ public class Main {
                                                     {0.00f, 0.49f, 0.30f, 0.00f, 0.01f, 0.20f},
                                                     {0.00f, 0.00f, 0.48f, 0.20f, 0.02f, 0.30f},
                                                     {0.00f, 0.00f, 0.00f, 0.40f, 0.30f, 0.30f},
-                                                    {0.00f, 0.00f, 0.00f, 0.00f, 0.80f, 0.20f}};
+                                                    {0.00f, 0.00f, 0.00f, 0.00f, 0.80f, 0.20f},
+                                                    {0.00f, 0.00f, 0.00f, 0.00f, 0.00f, 0.00f}};
     private float[][] linksClickPossibility = { {0.10f, 0.01f, 0.05f, 0.30f, 0.50f, 0.00f},
                                                 {0.10f, 0.01f, 0.15f, 0.30f, 0.40f, 0.00f},
                                                 {0.20f, 0.30f, 0.05f, 0.40f, 0.40f, 0.00f},
@@ -65,14 +66,15 @@ public class Main {
         }
     }
 
-    private void lookForwardAlg(){
-        for(int i=0;i<index;i++){
-            System.out.println(linksList[i][0]+" "+linksList[i][1]+" "+linksList[i][2]);
-        }
+    private void getStateAlg(){
+        // for(int i=0;i<index;i++){
+        //     System.out.println(linksList[i][0]+" "+linksList[i][1]+" "+linksList[i][2]);
+        // }
         int maxIndex = -1;
         float maxValue = 0;
         float[] lastPossibility = new float[7];
 
+        System.out.println("ZERO");
         for(int i=0; i<6;i++){
             for(int j=0; j<3;j++){
                 if(linksList[0][j]==0)
@@ -91,23 +93,87 @@ public class Main {
         }
 
         stateListInt[0]=maxIndex;
-        System.out.println("State:"+stateListInt[0]);
 
+        float[] newP = new float[6];
         for(int k=1; k<index; k++){
+
+            maxValue = 0;
+            maxIndex = -1;
+            if(stateListInt[k-1]==5){
+                stateListInt[k]=5;
+                continue;
+            }
+            line:{
             for(int i=0; i < 6; i++){
-                maxValue = 0;
-                maxIndex = -1;
+                // float clickP = 0;
                 for(int j=0; j<3; j++){
+                    
+
                     if(linksList[k][j]==0)
                         break;
+
+                    if(linksList[k][j]==7){
+                        stateListInt[k]=6;
+                        break line;
+                    }
                     
+                    if(linksList[k][j]==1){
+                        // float notClick = (1-lastPossibility[0])*(1-lastPossibility[1])*(1-lastPossibility[2])*(1-lastPossibility[3])*(1-lastPossibility[4]);
+                        newP[i]=(lastPossibility[0]*stateTransformPossibility[0][i] + lastPossibility[1]*stateTransformPossibility[1][i] + lastPossibility[2]*stateTransformPossibility[2][i] 
+                                + lastPossibility[3]*stateTransformPossibility[3][i] + lastPossibility[4]*stateTransformPossibility[4][i] ) 
+                                * ((1-linksClickPossibility[i][0]) * (1-linksClickPossibility[i][1]) * (1-linksClickPossibility[i][2]) * (1-linksClickPossibility[i][3]) * (1-linksClickPossibility[i][4])
+                                * (1-linksClickPossibility[i][5]));
+                        // newP[i]=(lastPossibility[0]*stateTransformPossibility[0][i] + lastPossibility[1]*stateTransformPossibility[1][i] + lastPossibility[2]*stateTransformPossibility[2][i] 
+                        //         + lastPossibility[3]*stateTransformPossibility[3][i] + lastPossibility[4]*stateTransformPossibility[4][i] )* notClick;
+                        break;
+                    }
+                    if(j==0){
+                    newP[i]=(lastPossibility[0]*stateTransformPossibility[0][i] + lastPossibility[1]*stateTransformPossibility[1][i] + lastPossibility[2]*stateTransformPossibility[2][i] 
+                                            + lastPossibility[3]*stateTransformPossibility[3][i] + lastPossibility[4]*stateTransformPossibility[4][i] ) * linksClickPossibility[i][linksList[k][j]-2];
+                    }
+                    else{
+                        newP[i] *= (lastPossibility[0]*stateTransformPossibility[0][i] + lastPossibility[1]*stateTransformPossibility[1][i] + lastPossibility[2]*stateTransformPossibility[2][i] 
+                                            + lastPossibility[3]*stateTransformPossibility[3][i] + lastPossibility[4]*stateTransformPossibility[4][i] ) * linksClickPossibility[i][linksList[k][j]-2];
+                    }
+
                 }
+                if(newP[i]>maxValue){
+                    maxValue = newP[i];
+                    maxIndex = i;
+                }
+
             }
+            if(maxIndex==-1)
+                stateListInt[k]=stateListInt[k-1];
+            else
+                stateListInt[k]=maxIndex;
+            }
+            for(int i =0;i<6;i++){
+                lastPossibility[i]=newP[i];
+                newP[i]=0;
+            }
+        }
+
+        for(int i = 0;i<index;i++){
+            if(stateListInt[i]==0)
+                System.out.println("ZERO");
+            if(stateListInt[i]==1)
+                System.out.println("AWARE");
+            if(stateListInt[i]==2)
+                System.out.println("CONSIDERING");
+            if(stateListInt[i]==3)
+                System.out.println("EXPERIENCING");
+            if(stateListInt[i]==4)
+                System.out.println("READY");
+            if(stateListInt[i]==5)
+                System.out.println("LOST");
+            if(stateListInt[i]==6)
+                System.out.println("SATISFIED");     
         }
     }
     public static void main(String[] args) {
         Main main = new Main();
         main.readFile();
-        main.lookForwardAlg();
+        main.getStateAlg();
     }
 }
