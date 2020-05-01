@@ -1,6 +1,11 @@
 import java.io.*;
 import java.util.*;
 
+/*
+Github: https://github.com/hnxals/AI-Assignment04
+Author: Mr-Crocodile(Bingxin Lyu)
+*/
+
 public class Main {
     private String fileName = "hmm1.txt";
     private String[] linksName = {"","","DEMO","VIDEO","TESTIMONIAL","PRICING","BLOG","PAYMENT"}; // none->0; emptyLine->1; demo->2; video->3 .... payment->7
