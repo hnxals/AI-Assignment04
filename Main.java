@@ -3,23 +3,22 @@ import java.util.*;
 
 public class Main {
     private String fileName = "hmm1.txt";
-    private String[] linksName = {"","","DEMO","VIDEO","TESTIMONIAL","PRICING","BLOG","PAYMENT"};
+    private String[] linksName = {"","","DEMO","VIDEO","TESTIMONIAL","PRICING","BLOG","PAYMENT"}; // none->0; emptyLine->1; demo->2; video->3 .... payment->7
     private int[][] linksList = new int[40][3];
     private int index = 0;
-    private float[][] stateTransformPossibility = { {0.60f, 0.40f, 0.00f, 0.00f, 0.00f, 0.00f},
-                                                    {0.00f, 0.49f, 0.30f, 0.00f, 0.01f, 0.20f},
-                                                    {0.00f, 0.00f, 0.48f, 0.20f, 0.02f, 0.30f},
-                                                    {0.00f, 0.00f, 0.00f, 0.40f, 0.30f, 0.30f},
-                                                    {0.00f, 0.00f, 0.00f, 0.00f, 0.80f, 0.20f},
-                                                    {0.00f, 0.00f, 0.00f, 0.00f, 0.00f, 0.00f}};
-    private float[][] linksClickPossibility = { {0.10f, 0.01f, 0.05f, 0.30f, 0.50f, 0.00f},
-                                                {0.10f, 0.01f, 0.15f, 0.30f, 0.40f, 0.00f},
-                                                {0.20f, 0.30f, 0.05f, 0.40f, 0.40f, 0.00f},
-                                                {0.40f, 0.60f, 0.05f, 0.30f, 0.40f, 0.00f},
-                                                {0.05f, 0.75f, 0.35f, 0.20f, 0.40f, 0.00f},
-                                                {0.01f, 0.01f, 0.03f, 0.05f, 0.20f, 0.00f},
-                                                {0.40f, 0.40f, 0.01f, 0.05f, 0.50f, 1.00f}};
-    private String[] stateList;
+    private float[][] stateTransformPossibility = { {0.60f, 0.40f, 0.00f, 0.00f, 0.00f, 0.00f}, //zero
+                                                    {0.00f, 0.49f, 0.30f, 0.00f, 0.01f, 0.20f}, //aware
+                                                    {0.00f, 0.00f, 0.48f, 0.20f, 0.02f, 0.30f}, //considering
+                                                    {0.00f, 0.00f, 0.00f, 0.40f, 0.30f, 0.30f}, //experiencing
+                                                    {0.00f, 0.00f, 0.00f, 0.00f, 0.80f, 0.20f}, //ready
+                                                    {0.00f, 0.00f, 0.00f, 0.00f, 0.00f, 0.00f}}; //lost
+    private float[][] linksClickPossibility = { {0.10f, 0.01f, 0.05f, 0.30f, 0.50f, 0.00f}, //zero
+                                                {0.10f, 0.01f, 0.15f, 0.30f, 0.40f, 0.00f}, //aware
+                                                {0.20f, 0.30f, 0.05f, 0.40f, 0.40f, 0.00f}, //considering
+                                                {0.40f, 0.60f, 0.05f, 0.30f, 0.40f, 0.00f}, //experiencing
+                                                {0.05f, 0.75f, 0.35f, 0.20f, 0.40f, 0.00f}, //ready
+                                                {0.01f, 0.01f, 0.03f, 0.05f, 0.20f, 0.00f}, //lost
+                                                {0.40f, 0.40f, 0.01f, 0.05f, 0.50f, 1.00f}}; //satisfied
     private int[] stateListInt;
 
     private void readFile() {
@@ -58,7 +57,6 @@ public class Main {
                 index++;
             }
             myReader.close();
-            stateList = new String[index];
             stateListInt = new int[index];
 
         } catch (Exception e) {
@@ -73,7 +71,8 @@ public class Main {
         int maxIndex = -1;
         float maxValue = 0;
         float[] lastPossibility = new float[7];
-
+        
+        //initialize first P
         System.out.println("ZERO");
         for(int i=0; i<6;i++){
             for(int j=0; j<3;j++){
@@ -91,8 +90,8 @@ public class Main {
                 maxIndex=i;
             }
         }
-
         stateListInt[0]=maxIndex;
+
 
         float[] newP = new float[6];
         for(int k=1; k<index; k++){
@@ -108,15 +107,17 @@ public class Main {
                 // float clickP = 0;
                 for(int j=0; j<3; j++){
                     
-
+                    //end of line
                     if(linksList[k][j]==0)
                         break;
 
+                    //when click payment then change state to SATISFIED
                     if(linksList[k][j]==7){
                         stateListInt[k]=6;
                         break line;
                     }
                     
+                    //empty line
                     if(linksList[k][j]==1){
                         // float notClick = (1-lastPossibility[0])*(1-lastPossibility[1])*(1-lastPossibility[2])*(1-lastPossibility[3])*(1-lastPossibility[4]);
                         newP[i]=(lastPossibility[0]*stateTransformPossibility[0][i] + lastPossibility[1]*stateTransformPossibility[1][i] + lastPossibility[2]*stateTransformPossibility[2][i] 
@@ -154,6 +155,7 @@ public class Main {
             }
         }
 
+        //print states
         for(int i = 0;i<index;i++){
             if(stateListInt[i]==0)
                 System.out.println("ZERO");
